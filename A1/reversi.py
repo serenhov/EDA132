@@ -1,5 +1,6 @@
 import random
 import math
+from copy import deepcopy
 from pip._vendor.distlib.compat import raw_input
 
 UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
@@ -8,7 +9,6 @@ EMPTY, BLACK, WHITE, OUTER = 'X', 1, -1, '?'
 PIECES = (EMPTY, BLACK, WHITE, OUTER)
 PLAYERS = (BLACK, WHITE)
 depth = 3
-
 
 
 print(" 1  2  3  4  5  6  7  8")
@@ -31,12 +31,10 @@ def find_possible_moves(board, player):
     for j in range(8):
         for i in range(8):
             if board[i][j] == player:
-                #Eprint(i, j, "location for player")
                 for d in DIRECTIONS:
                     new_row = i + d[0]
                     new_column = j + d[1]
                     while on_board(new_row) and on_board(new_column):
-                   # print(new_row, new_column)
                         if board[new_row][new_column] == -player:
                             new_row += d[0]
                             new_column += d[1]
@@ -46,10 +44,8 @@ def find_possible_moves(board, player):
                                 break
                         else:
                             break
-                           # elif board[new_row][new_column] == -player
-
     return valid_moves
-#find_possible_moves(board, 1)
+
 
 def make_move(board, player, row, column):
     #if (row, column) not in find_possible_moves(board, player):
@@ -62,7 +58,6 @@ def make_move(board, player, row, column):
 def flip(board, player, row, column):
     flips = []
     for d in DIRECTIONS:
-        print(d)
         new_row = row + d[0]
         new_column = column + d[1]
         flips.clear()
@@ -70,21 +65,15 @@ def flip(board, player, row, column):
             flips.append((new_row, new_column))
             new_row += d[0]
             new_column += d[1]
-            #print(board[new_row][new_column], "i while loop")
             if on_board(new_row) and on_board(new_column) and board[new_row][new_column] == player:
-                print('flipping')
                 i = 0
                 for f in flips:
-                    print("flip")
                     a = flips[i][0]
                     b = flips[i][1]
-                    print("a =", a, "b =", b)
                     board[a][b] = player
                     i += 1
     for row in board:
         print(row)
-
-#make_move(board, 1, 5, 3)
 
 
 def calculate_points(board, player):
@@ -93,7 +82,7 @@ def calculate_points(board, player):
         for i in range(8):
             if board[i][j] == player:
                 count += 1
-    return print(count)
+    return count
 
 
 def calculate_winner(board):
@@ -106,28 +95,37 @@ def calculate_winner(board):
             elif board[i][j] == BLACK:
                 black += 1
     if black > white:
-        return print('black won.')
+        return 'BLACK!'
     elif black == white:
-        return print('equal.')
+        return 'DRAW'
     else:
-        return print('white won')
+        return 'WHITE!'
 
 
-def mini_max(alpha, beta, board, player, time_limit, depth):
-    if depth == 0 or find_possible_moves(board,player).len() == 0:
-        return calculate_points(board, player)
-    if time_limit <= 0:
+def mini_max(alpha, beta, board, player, depth):
+    #i = 0
+    result = []
+    if depth == 0 or not find_possible_moves(board, player):
+        calculate_points(board, player)
+   # if time_limit <= 0:
         return calculate_points(board, player)
     if player == 1:
         for move in find_possible_moves(board, player):
-            alpha = max(alpha, mini_max(alpha, beta, board, -player, depth-1))
+            #make_move(deepcopy(board), player, move[i][0], move[i][1])
+            value = max(alpha, mini_max(alpha, beta, board, -player, depth-1))
+            if value > alpha:
+                best_move = move
+                alpha = value
             if alpha >= beta:
                 break
     elif player == -1:
-        for move in find_possible_moves(board,player):
+        for move in find_possible_moves(board, player):
+            #make_move(deepcopy(board), player, move[i][0], move[i][1])
+
             beta = min(beta, mini_max(alpha, beta, board, -player, depth-1))
-            if alpha >= beta:
+            if int(alpha) >= int(beta):
                 break
+    return best_move
 
 
 def random_strategy(player, board):
@@ -146,9 +144,8 @@ def game_on(board, player):
         else:
             if player == -1:
                 ai_move = random_strategy(board, -1)
-                #ai_move = mini_max(-math.inf, math.inf, board, -1, time, depth)
-                print(ai_move, "AI slump")
-                print("0=", ai_move[0], "1=", ai_move[1])
+                #ai_move = mini_max(-64, 64, board, -1, depth)
+                print("AI-move:", ai_move)
                 make_move(board, -1, ai_move[0], ai_move[1])
                 game_on(board, -player)
         break
@@ -159,7 +156,10 @@ print("Hello, lets play Reversi!")
 time = int(input("What timelimit should you competitor have? (in seconds)"))
 print("Great! Timelimit is set to", time, "seconds. You are player 1, good luck!")
 game_on(board, 1)
-calculate_winner(board)
+
+print(" THE WINNER IS: ", calculate_winner(board), "Score - Black: ", calculate_points(board, 1), ", White: ", calculate_points(board, -1))
+
+
 
 
 
