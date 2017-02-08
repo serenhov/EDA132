@@ -31,7 +31,7 @@ def find_possible_moves(board, player):
     for j in range(8):
         for i in range(8):
             if board[i][j] == player:
-                print(i, j, "location for player")
+                #Eprint(i, j, "location for player")
                 for d in DIRECTIONS:
                     new_row = i + d[0]
                     new_column = j + d[1]
@@ -40,7 +40,7 @@ def find_possible_moves(board, player):
                         if board[new_row][new_column] == -player:
                             new_row += d[0]
                             new_column += d[1]
-                            if board[new_row][new_column] == 0:
+                            if on_board(new_row) and on_board(new_column) and board[new_row][new_column] == 0:
                                 if (new_row, new_column) not in valid_moves:
                                     valid_moves.append((new_row, new_column))
                                 break
@@ -70,7 +70,7 @@ def flip(board, player, row, column):
             flips.append((new_row, new_column))
             new_row += d[0]
             new_column += d[1]
-            print(board[new_row][new_column], "i while loop")
+            #print(board[new_row][new_column], "i while loop")
             if on_board(new_row) and on_board(new_column) and board[new_row][new_column] == player:
                 print('flipping')
                 i = 0
@@ -128,7 +128,6 @@ def mini_max(alpha, beta, board, player, time_limit, depth):
             beta = min(beta, mini_max(alpha, beta, board, -player, depth-1))
             if alpha >= beta:
                 break
-    return
 
 
 def random_strategy(player, board):
@@ -136,30 +135,31 @@ def random_strategy(player, board):
 
 
 def game_on(board, player):
-
-    if player == 1 and find_possible_moves(board, player) != 0:
-        print("These are your alternatives")
-        pmoves = find_possible_moves(board, 1)
-        print(pmoves)
-        the_move = int(input("Make a move:"))
-        make_move(board, 1, pmoves[the_move][0], pmoves[the_move][1])
-        game_on(board, -player)
-    else:
-        if player == -1 and find_possible_moves(board, -player) != 0:
-            ai_move = random_strategy(board, -1)
-            #ai_move = mini_max(-math.inf, math.inf, board, -1, time, depth)
-            print(ai_move, "AI slump")
-            print("0=", ai_move[0], "1=", ai_move[1])
-            make_move(board, -1, ai_move[0], ai_move[1])
+    while find_possible_moves(board, player):
+        if player == 1:
+            print("These are your alternatives")
+            pmoves = find_possible_moves(board, 1)
+            print(pmoves)
+            the_move = int(input("Make a move:"))
+            make_move(board, 1, pmoves[the_move][0], pmoves[the_move][1])
             game_on(board, -player)
-    return calculate_winner(board)
+        else:
+            if player == -1:
+                ai_move = random_strategy(board, -1)
+                #ai_move = mini_max(-math.inf, math.inf, board, -1, time, depth)
+                print(ai_move, "AI slump")
+                print("0=", ai_move[0], "1=", ai_move[1])
+                make_move(board, -1, ai_move[0], ai_move[1])
+                game_on(board, -player)
+        break
+
 
 
 print("Hello, lets play Reversi!")
 time = int(input("What timelimit should you competitor have? (in seconds)"))
 print("Great! Timelimit is set to", time, "seconds. You are player 1, good luck!")
 game_on(board, 1)
-
+calculate_winner(board)
 
 
 
