@@ -1,14 +1,17 @@
-
+import random
+import math
 from pip._vendor.distlib.compat import raw_input
 
-UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, 1), (-1, 1), (1, -1), (1, 1)]
+UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 DIRECTIONS = (UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT)
 EMPTY, BLACK, WHITE, OUTER = 'X', 1, -1, '?'
 PIECES = (EMPTY, BLACK, WHITE, OUTER)
 PLAYERS = (BLACK, WHITE)
+depth = 3
 
 
 
+print(" 1  2  3  4  5  6  7  8")
 w, h = 8, 8;
 board = [[0 for x in range(w)] for y in range(h)]
 board[3][3] = BLACK
@@ -19,25 +22,33 @@ for row in board:
     print(row)
 
 
+def on_board(i):
+    return 0 <= i < 8
+
+
 def find_possible_moves(board, player):
     valid_moves = []
     for j in range(8):
         for i in range(8):
-            moves = 0
             if board[i][j] == player:
-                #print(i, j, "location for player")
+                print(i, j, "location for player")
                 for d in DIRECTIONS:
                     new_row = i + d[0]
                     new_column = j + d[1]
+                    while on_board(new_row) and on_board(new_column):
                    # print(new_row, new_column)
-                    if board[new_row][new_column] == -player:
-                        moves = 1
-                        new_row += d[0]
-                        new_column += d[1]
-                       # print(new_row, new_column, "hej")
-                        if board[new_row][new_column] == 0 and moves == 1:
-                            valid_moves.append((new_row, new_column))
-    return print(valid_moves)
+                        if board[new_row][new_column] == -player:
+                            new_row += d[0]
+                            new_column += d[1]
+                            if board[new_row][new_column] == 0:
+                                if (new_row, new_column) not in valid_moves:
+                                    valid_moves.append((new_row, new_column))
+                                break
+                        else:
+                            break
+                           # elif board[new_row][new_column] == -player
+
+    return valid_moves
 #find_possible_moves(board, 1)
 
 def make_move(board, player, row, column):
@@ -51,15 +62,17 @@ def make_move(board, player, row, column):
 def flip(board, player, row, column):
     flips = []
     for d in DIRECTIONS:
+        print(d)
         new_row = row + d[0]
         new_column = column + d[1]
-        while board[new_row][new_column] == -player:
+        flips.clear()
+        while on_board(new_row) and on_board(new_column) and board[new_row][new_column] == -player:
             flips.append((new_row, new_column))
-            print(flips, "flip listan")
             new_row += d[0]
             new_column += d[1]
-            print(board[new_row][new_column], "värdet på playts 33")
-            if board[new_row][new_column] == player:
+            print(board[new_row][new_column], "i while loop")
+            if on_board(new_row) and on_board(new_column) and board[new_row][new_column] == player:
+                print('flipping')
                 i = 0
                 for f in flips:
                     print("flip")
@@ -71,7 +84,7 @@ def flip(board, player, row, column):
     for row in board:
         print(row)
 
-make_move(board, 1, 5, 3)
+#make_move(board, 1, 5, 3)
 
 
 def calculate_points(board, player):
@@ -82,7 +95,6 @@ def calculate_points(board, player):
                 count += 1
     return print(count)
 
-calculate_points(board,1)
 
 def calculate_winner(board):
     white = 0
@@ -99,7 +111,7 @@ def calculate_winner(board):
         return print('equal.')
     else:
         return print('white won')
-calculate_winner(board)
+
 
 def mini_max(alpha, beta, board, player, time_limit, depth):
     if depth == 0 or find_possible_moves(board,player).len() == 0:
@@ -116,7 +128,37 @@ def mini_max(alpha, beta, board, player, time_limit, depth):
             beta = min(beta, mini_max(alpha, beta, board, -player, depth-1))
             if alpha >= beta:
                 break
+    return
 
+
+def random_strategy(player, board):
+    return random.choice(find_possible_moves(player, board))
+
+
+def game_on(board, player):
+
+    if player == 1 and find_possible_moves(board, player) != 0:
+        print("These are your alternatives")
+        pmoves = find_possible_moves(board, 1)
+        print(pmoves)
+        the_move = int(input("Make a move:"))
+        make_move(board, 1, pmoves[the_move][0], pmoves[the_move][1])
+        game_on(board, -player)
+    else:
+        if player == -1 and find_possible_moves(board, -player) != 0:
+            ai_move = random_strategy(board, -1)
+            #ai_move = mini_max(-math.inf, math.inf, board, -1, time, depth)
+            print(ai_move, "AI slump")
+            print("0=", ai_move[0], "1=", ai_move[1])
+            make_move(board, -1, ai_move[0], ai_move[1])
+            game_on(board, -player)
+    return calculate_winner(board)
+
+
+print("Hello, lets play Reversi!")
+time = int(input("What timelimit should you competitor have? (in seconds)"))
+print("Great! Timelimit is set to", time, "seconds. You are player 1, good luck!")
+game_on(board, 1)
 
 
 
