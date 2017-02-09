@@ -105,18 +105,17 @@ def calculate_winner(board):
 
 # THE ALGORITHM!
 # Returns the best move for the AI
-def alpha_beta(alpha, beta, board, player, depth):
-    #start_time = time.time()
+def alpha_beta(alpha, beta, board, player, depth, time_limit):
+    start_time = time.time()
     best_alpha = find_possible_moves(board, player)[0]
     print(best_alpha)
     max_alpha = -64
-    #while (time.time() - start_time) >= time_limit:
-    for move in find_possible_moves(board, player):
-        v = mini_max(alpha, beta, board, player, depth)
-        print(v, "hej")
-        if v > max_alpha:
-            max_alpha = v
-            best_alpha = move
+    while (time.time() - start_time) <= time_limit:
+        for move in find_possible_moves(board, player):
+            v = mini_max(alpha, beta, board, player, depth)
+            if v > max_alpha:
+                max_alpha = v
+                best_alpha = move
     return best_alpha
 
 
@@ -127,6 +126,7 @@ def mini_max(alpha, beta, board, player, depth):
         return calculate_points(board, player)
     if player == 1:
         for move in find_possible_moves(board, player):
+           #print("PLAYER 1")
             board_with_move = deepcopy(board)
             make_move(board_with_move, player, move[0], move[1])
             alpha = max(alpha, mini_max(alpha, beta, board_with_move, -player, depth-1))
@@ -135,6 +135,7 @@ def mini_max(alpha, beta, board, player, depth):
             return alpha
     elif player == -1:
         for move in find_possible_moves(board, player):
+           # print("PLAYER -----1")
             board_with_move = deepcopy(board)
             make_move(board_with_move, player, move[0], move[1])
             beta = min(beta, mini_max(alpha, beta, board_with_move, -player, depth-1))
@@ -165,7 +166,7 @@ def game_on(board, player):
         else:
             if player == -1:
                 #ai_move = random_strategy(board, -1)
-                ai_move = alpha_beta(-64, 64, board, -1, depth)
+                ai_move = alpha_beta(-64, 64, board, -1, depth, limit)
                 print("AI-move: (", ai_move[0]+1, ",", ai_move[1]+1, ")")
                 make_move(board, -1, ai_move[0], ai_move[1])
                 print_board(board)
