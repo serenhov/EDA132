@@ -1,33 +1,30 @@
 import random
-import math
+import time
 from copy import deepcopy
-from pip._vendor.distlib.compat import raw_input
+
 
 UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 DIRECTIONS = (UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT)
-EMPTY, BLACK, WHITE, OUTER = 'X', 1, -1, '?'
-PIECES = (EMPTY, BLACK, WHITE, OUTER)
+BLACK, WHITE = 1, -1
 PLAYERS = (BLACK, WHITE)
-depth = 3
+depth = 20
 
 
-print("   1  2  3  4  5  6  7  8")
-w, h = 8, 8;
-board = [[0 for x in range(w)] for y in range(h)]
-board[3][3] = BLACK
-board[4][4] = BLACK
-board[4][3] = WHITE
-board[3][4] = WHITE
-i = 1
-for row in board:
-    print(i, row)
-    i += 1
+# Prints the game board
+def print_board(board):
+    print("   1  2  3  4  5  6  7  8")
+    i = 1
+    for row in board:
+        print(i, row)
+        i += 1
 
 
+# Checks if the coordinates are on the board
 def on_board(i):
     return 0 <= i < 8
 
 
+# Finds all possible moves for the current player
 def find_possible_moves(board, player):
     valid_moves = []
     for j in range(8):
@@ -49,14 +46,16 @@ def find_possible_moves(board, player):
     return valid_moves
 
 
+# Makes the actual move and call the flip method
 def make_move(board, player, row, column):
-    #if (row, column) not in find_possible_moves(board, player):
-     #   return 0
+    #if(row, column) not in find_possible_moves(board, player):
+    #    return 0
     board[row][column] = player
     flip(board, player, row, column)
     return 1
 
 
+# Flips the bricks in a certain move
 def flip(board, player, row, column):
     flips = []
     for d in DIRECTIONS:
@@ -76,14 +75,7 @@ def flip(board, player, row, column):
                     i += 1
 
 
-def print_board(board):
-    print("   1  2  3  4  5  6  7  8")
-    i = 1
-    for row in board:
-        print(i, row)
-        i += 1
-
-
+# Calculate points for current player
 def calculate_points(board, player):
     count = 0
     for j in range(8):
@@ -93,6 +85,7 @@ def calculate_points(board, player):
     return count
 
 
+# Calculates the winner of the game
 def calculate_winner(board):
     white = 0
     black = 0
@@ -109,41 +102,54 @@ def calculate_winner(board):
     else:
         return 'WHITE!'
 
-#Lägg till timer och skicka med move så att man vet vilket move som genererar bäst alpha och beta
-def mini_max(alpha, beta, board, player, depth, d):
+
+# THE ALGORITHM!
+# Returns the best move for the AI
+def alpha_beta(alpha, beta, board, player, depth, time_limit):
+    start_time = time.time()
+    best_alpha = find_possible_moves(board, player)[0]
+    while (time.time() - start_time) >= time_limit:
+        for move in find_possible_moves(board, player):
+            v = mini_max(alpha, beta, board, player, depth)
+            if v > alpha:
+                alpha = v
+                best_alpha = move
+    return best_alpha
+
+
+# THE ALGORITHM!
+# Our AI engine returns the best score
+def mini_max(alpha, beta, board, player, depth):
     if depth == 0 or not find_possible_moves(board, player):
         return calculate_points(board, player)
     if player == 1:
-        i = 0
         for move in find_possible_moves(board, player):
-            print("player 1 ", d, move)
-            d += 1
-            i += 1
+            print("player 1 ", move)
             board_with_move = deepcopy(board)
             make_move(board_with_move, player, move[0], move[1])
-            alpha = max(alpha, mini_max(alpha, beta, board_with_move, -player, depth-1, d))
+            alpha = max(alpha, mini_max(alpha, beta, board_with_move, -player, depth-1))
             if alpha >= beta:
                 break
             return alpha
     elif player == -1:
-        i = 0
         for move in find_possible_moves(board, player):
-            print("player -1 ", d, move)
-            d += 1
-            i += 1
+            print("player -1 ", move)
+            #d += 1
+            #i += 1
             board_with_move = deepcopy(board)
             make_move(board_with_move, player, move[0], move[1])
-            beta = min(beta, mini_max(alpha, beta, board_with_move, -player, depth-1, d))
+            beta = min(beta, mini_max(alpha, beta, board_with_move, -player, depth-1))
             if int(alpha) >= int(beta):
                 break
             return beta
 
-#Test för att köra spelet, fungerar
 
+# If you want to play against a random
 def random_strategy(player, board):
     return random.choice(find_possible_moves(player, board))
 
 
+# Starts the game
 def game_on(board, player):
     while find_possible_moves(board, player):
         if player == 1:
@@ -151,7 +157,7 @@ def game_on(board, player):
             print_moves = find_possible_moves(board, 1)
             i = 0
             for p in print_moves:
-                print(i, "  :", p)
+                print(i, "  :", p[0]+1, p[1]+1)
                 i += 1
             players_move = int(input("Make a move:  "))
             make_move(board, 1, print_moves[players_move][0], print_moves[players_move][1])
@@ -160,18 +166,27 @@ def game_on(board, player):
         else:
             if player == -1:
                 #ai_move = random_strategy(board, -1)
-                ai_move = mini_max(-64, 64, board, -1, depth, 0)
-                print("AI-move:", ai_move)
-                #make_move(board, -1, ai_move[0], ai_move[1])
+                ai_move = alpha_beta(-64, 64, board, -1, depth, limit)
+                print("AI-move: (", ai_move[0]+1, ",", ai_move[1]+1, ")")
+                make_move(board, -1, ai_move[0], ai_move[1])
                 print_board(board)
                 game_on(board, -player)
         break
 
 
+# Creates and prints the game board
+w, h = 8, 8;
+board = [[0 for x in range(w)] for y in range(h)]
+board[3][3] = BLACK
+board[4][4] = BLACK
+board[4][3] = WHITE
+board[3][4] = WHITE
+print_board(board)
+
 print("  ")
 print("Hello, lets play Reversi!")
-time = int(input("What timelimit should you competitor have? (in seconds)  "))
-print("Great! Timelimit is set to", time, "seconds. You are player 1, good luck!")
+limit = int(input("What timelimit should you competitor have? (in seconds)  "))
+print("Great! Timelimit is set to", limit, "seconds. You are player 1, good luck!")
 game_on(board, 1)
 
 print(" THE WINNER IS: ", calculate_winner(board), "Score - Black: ", calculate_points(board, 1), ", White: ", calculate_points(board, -1))
