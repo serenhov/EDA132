@@ -128,9 +128,9 @@ def read_svm(my_file):
         for word in line:
             if i % 2 == 0:
                 i += 1
-                y_val.append(int(word))
+                y_val.append(word)
             else:
-                x_val.append(int(word))
+                x_val.append(word)
     return x_val, y_val
 
 
@@ -141,10 +141,13 @@ for i in range(0, 14):
 for i in range(0, 14):
     print('1 ', '1:', french[0][i], '2:', french[1][i])
 
-
+f = open("file.txt", 'w')
 svmlist = [ '','' ,'' ,'' ,'' ]
 for i in range(0, 14):
     svmlist.append(['0', '1:', english[0][i], '2', english[1][i]])
     svmlist.append(['1', '1:', french[0][i], '2', french[1][i]])
 for elem in svmlist:
     print(elem)
+    f.write(str(elem))
+    f.write('\n')
+
