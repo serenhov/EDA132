@@ -140,3 +140,11 @@ for i in range(0, 14):
     print('0 ', '1:', english[0][i], '2:', english[1][i])
 for i in range(0, 14):
     print('1 ', '1:', french[0][i], '2:', french[1][i])
+
+
+svmlist = [ '','' ,'' ,'' ,'' ]
+for i in range(0, 14):
+    svmlist.append(['0', '1:', english[0][i], '2', english[1][i]])
+    svmlist.append(['1', '1:', french[0][i], '2', french[1][i]])
+for elem in svmlist:
+    print(elem)
