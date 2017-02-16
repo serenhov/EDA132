@@ -74,8 +74,8 @@ def gradient_descent_runner(data, starting_b, starting_m, learning_rate):
 
 def runnow(data):
     learning_rate = 0.0001
-    initial_b = 0
-    initial_m = 0
+    initial_b = 0 # initial y-intercept guess
+    initial_m = 0 # initial slope guess
     print("Starting gradient descent at b = {0}, m = {1}, error = {2}".format(initial_b, initial_m, compute_error_for_line_given_points(initial_b, initial_m, data)))
     print("Running...")
     [b, m] = gradient_descent_runner(data, initial_b, initial_m, learning_rate)
@@ -83,8 +83,26 @@ def runnow(data):
     return b, m
 
 
+def prediction(data):
+    s_xy = 0
+    s_xx = 0
+    e = 0
+    x_hat = np.mean(data[0])
+    y_hat = np.mean(data[1])
+    for val in data:
+        s_xy += (val[0] - x_hat) * (val[1] - y_hat)
+        s_xx += (val[0] - x_hat) ** 2
+    beta = s_xy / s_xx
+    alpha = y_hat - (beta * x_hat)
+    for val in data:
+        e += val[1] - alpha - (beta * val[0])
+    beta = beta + e
+    return beta, alpha
+
+
 data_english = read_file_and_scale('english')
 data_french = read_file_and_scale('french')
-eng_grad = runnow(data_english)
-fren_grad = runnow(data_french)
+eng_grad = prediction(data_english)
+fren_grad = prediction(data_french)
+
 plot_data(data_english, data_french, eng_grad, fren_grad)
