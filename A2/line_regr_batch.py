@@ -39,20 +39,17 @@ def plot_data(my_data1, my_data2, grad1, grad2):
     plt.plot(grad2, 'r')
     plt.show()
 
-#plt.plot(read_file_and_scale('english')[0], read_file_and_scale('english')[1], 'ro')
 
-
-# m is slope, b is y-intercept
 def compute_error_for_line_given_points(b, m, data):
-    totalError = 0
-    for i in range(0, 14):
+    total_error = 0
+    for i in range(0, 15):
         x = data[0][i]
         y = data[1][i]
-        totalError += (y - (m * x + b)) ** 2
-    return totalError / float(14)
+        total_error += (y - (m * x + b)) ** 2
+    return total_error / float(14)
 
 
-def step_gradient(b_current, m_current, data, learningRate):
+def step_gradient(b_current, m_current, data, learning_rate):
     b_gradient = 0
     m_gradient = 0
     N = float(14)
@@ -61,8 +58,8 @@ def step_gradient(b_current, m_current, data, learningRate):
         y = data[1][i]
         b_gradient += -(2/N) * (y - ((m_current * x) + b_current))
         m_gradient += -(2/N) * x * (y - ((m_current * x) + b_current))
-    new_b = b_current - (learningRate * b_gradient)
-    new_m = m_current - (learningRate * m_gradient)
+    new_b = b_current - (learning_rate * b_gradient)
+    new_m = m_current - (learning_rate * m_gradient)
     return [new_b, new_m]
 
 

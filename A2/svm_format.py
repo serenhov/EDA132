@@ -50,13 +50,13 @@ french = read_file_and_scale('french')
 
 
 f = open("file.txt", 'w')
-for i in range(0, 14):
+for i in range(0, 15):
     f.write('0 1:')
     f.write('{}'.format(english[1][i]))
     f.write(' 2:')
     f.write('{}'.format(english[0][i]))
     f.write('\n')
-for i in range(0, 14):
+for i in range(0, 15):
     f.write('1 1:')
     f.write('{}'.format(french[1][i]))
     f.write(' 2:')
