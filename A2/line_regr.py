@@ -18,20 +18,23 @@ def read_file_and_scale(my_file):
                 py_val.append(int(word))
             else:
                 px_val.append(int(word))
-    max_x = max(px_val)
-    max_y = max(py_val)
+    max_y = 76725
+    max_x = 5312
+    print('x:', max_x, 'y', max_y)
+    print(px_val)
     for val in px_val:
         new_val = val / max_x
         x_val.append(new_val)
     for val in py_val:
         new_val = val / max_y
         y_val.append(new_val)
+    print(x_val, y_val)
     return x_val, y_val
 
 
 def plot_data(my_data1, my_data2, grad1, grad2):
-    plt.plot(my_data1[0], my_data1[1], 'ro')
-    plt.plot(my_data2[0], my_data2[1], 'bo')
+    plt.plot(my_data1[1], my_data1[0], 'ro')
+    plt.plot(my_data2[1], my_data2[0], 'bo')
     plt.plot(grad1, 'b')
     plt.plot(grad2, 'r')
     plt.show()

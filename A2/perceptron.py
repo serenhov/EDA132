@@ -25,6 +25,7 @@ def read_svm_file(my_file):
 
 def perceptron_stochastic(svm_data, w1, w2, learning_rate):
     while True:
+        print()
         missed = 0
         random = randint(0, 27)
         print('random: ', random)
@@ -34,17 +35,18 @@ def perceptron_stochastic(svm_data, w1, w2, learning_rate):
         else:
             hw = 0
             print('hw0')
-        w1 = w1 * learning_rate * (svm_data[0][random] - hw) * svm_data[1][random]
-        w2 = w2 * learning_rate * (svm_data[0][random] - hw) * svm_data[2][random]
+        w1 += learning_rate * (svm_data[0][random] - hw) * svm_data[1][random]
+        w2 += learning_rate * (svm_data[0][random] - hw) * svm_data[2][random]
+        print(svm_data[0][random], svm_data[1][random], svm_data[2][random], "hej")
         print('w1', w1, 'w2', w2, 'heja på')
         for i in range(27):
-            if (w1 * svm_data[1][random] + w2 * svm_data[2][random]) > 0:
+            if (w1 * svm_data[1][i] + w2 * svm_data[2][i]) > 0:
                 res1 = 1
             else:
                 res1 = 0
-            if res1 != svm_data[0][random]:
+            if res1 != svm_data[0][i]:
                 missed += 1
-                #print("HEJ")
+                print("Missed++")
         if missed < 1:
             break
     return w1, w2
@@ -61,9 +63,8 @@ def plot_data(data, perceptron):
 
 
 ddata = read_svm_file('file.txt')
-print(ddata[1][27], 'data')
 result = perceptron_stochastic(ddata, 0, 1, 0.1)
-print(result)
+print(result, "RESULTAT")
 plot_data(ddata, result)
 
 
