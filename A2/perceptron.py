@@ -69,8 +69,6 @@ def logistic_regression(svm_data, w1, w2, learning_rate):
             new_weights.append(w1)
             new_weights.append(w2)
             print(stop_criteria(weights, new_weights), 'stop')
-            if stop_criteria(weights, new_weights) < 0.001:
-                break
         if stop_criteria(weights, new_weights) < 0.001:
             break
         weights.clear()
