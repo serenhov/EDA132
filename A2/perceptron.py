@@ -1,4 +1,6 @@
 from random import randint
+
+import math
 import matplotlib.pyplot as plt
 
 
@@ -24,31 +26,66 @@ def read_svm_file(my_file):
 
 
 def perceptron_stochastic(svm_data, w1, w2, learning_rate):
+    w0 = 1
     while True:
         missed = 0
         random = randint(0, 29)
-        print('random: ', random)
-        if (w1 * svm_data[1][random] + w2 * svm_data[2][random]) > 0:
+        if (w1 * svm_data[1][random] + w2 * svm_data[2][random] + w0) > 0:
             hw = 1
-            print('hw1')
         else:
             hw = 0
-            print('hw0')
+        w0 += learning_rate * (svm_data[0][random] - hw)
         w1 += learning_rate * (svm_data[0][random] - hw) * svm_data[1][random]
         w2 += learning_rate * (svm_data[0][random] - hw) * svm_data[2][random]
-        print(svm_data[0][random], svm_data[1][random], svm_data[2][random])
-        print('w1', w1, 'w2', w2, 'heja på')
         for i in range(30):
-            if (w1 * svm_data[1][i] + w2 * svm_data[2][i]) > 0:
+            if (w1 * svm_data[1][i] + w2 * svm_data[2][i] + w0) > 0:
                 res1 = 1
             else:
                 res1 = 0
             if res1 != svm_data[0][i]:
                 missed += 1
-                print("Miss!!")
         if missed < 1:
             break
-    return w1, w2
+    return w0, w1, w2
+
+
+def logistic_regression(svm_data, w1, w2, learning_rate):
+    w0 = 1
+    weights = []
+    new_weights = []
+    weights.append(w0)
+    weights.append(w1)
+    weights.append(w2)
+    while True:
+       # random = randint(0, 29)
+
+        for i in range(30):
+            new_weights.clear()
+            hw = 1 / (1 + math.e ** (- w0 - w1 * svm_data[1][i] - w2 * svm_data[2][i]))
+            w0 += learning_rate * (svm_data[0][i] - hw)
+            w1 += learning_rate * (svm_data[0][i] - hw) * hw * (1-hw) * svm_data[1][i]
+            w2 += learning_rate * (svm_data[0][i] - hw) * hw * (1-hw) * svm_data[2][i]
+            new_weights.append(w0)
+            new_weights.append(w1)
+            new_weights.append(w2)
+            print(stop_criteria(weights, new_weights), 'stop')
+            if stop_criteria(weights, new_weights) < 0.001:
+                break
+        if stop_criteria(weights, new_weights) < 0.001:
+            break
+        weights.clear()
+        weights.append(new_weights[0])
+        weights.append(new_weights[1])
+        weights.append(new_weights[2])
+    return w0, w1, w2
+
+
+def stop_criteria(weights, new_weights):
+    sum = 0
+    for i in range(3):
+        sum += abs((weights[i] - new_weights[i]) / new_weights[i])
+    result = sum / 3
+    return result
 
 
 def plot_data(data, perceptron):
@@ -57,8 +94,8 @@ def plot_data(data, perceptron):
             plt.plot(data[1][i], data[2][i], 'ro')
         else:
             plt.plot(data[1][i], data[2][i], 'bo')
-    k = -1 * perceptron[0] / perceptron[1]
-    m = 0
+    k = -1 * perceptron[1] / perceptron[2]
+    m = perceptron[0] / perceptron[2]
     x_0 = 0
     y_0 = m
     x_1 = 1
@@ -68,7 +105,8 @@ def plot_data(data, perceptron):
 
 
 svm_data = read_svm_file('file.txt')
-result = perceptron_stochastic(svm_data, 1, 0, 0.01)
+#result = perceptron_stochastic(svm_data, 0, 1, 0.01)
+result = logistic_regression(svm_data, 0, 1, 0.01)
 print(result, "RESULTAT")
 plot_data(svm_data, result)
 
