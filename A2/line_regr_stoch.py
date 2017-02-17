@@ -34,15 +34,32 @@ def read_file_and_scale(my_file):
 def plot_data(my_data1, my_data2, grad1, grad2):
     plt.plot(my_data1[0], my_data1[1], 'ro')
     plt.plot(my_data2[0], my_data2[1], 'bo')
-    plt.plot(grad1, 'b')
-    plt.plot(grad2, 'r')
+    #plt.plot(grad1, 'b')
+    #plt.plot(grad2, 'r')
+
+    k = grad1[1]
+    m = grad1[0]
+    x_0 = 0
+    y_0 = m
+    x_1 = 1
+    y_1 = k * (x_1 - x_0) + y_0
+    plt.plot([x_0, x_1], [y_0, y_1], 'b')
+
+    k = grad2[1]
+    m = grad2[0]
+    x_0 = 0
+    y_0 = m
+    x_1 = 1
+    y_1 = k * (x_1 - x_0) + y_0
+    plt.plot([x_0, x_1], [y_0, y_1], 'r')
+
     plt.show()
 
 #plt.plot(read_file_and_scale('english')[0], read_file_and_scale('english')[1], 'ro')
 
 
 # m is slope, b is y-intercept
-def compute_error_for_line_given_points(b, m, data):
+def compute_error(b, m, data):
     totalError = 0
     for i in range(0, 14):
         x = data[0][i]
@@ -68,7 +85,7 @@ def step_gradient(b_current, m_current, data, learningRate):
 def gradient_descent_runner(data, starting_b, starting_m, learning_rate):
     b = starting_b
     m = starting_m
-    while compute_error_for_line_given_points(b, m, data) > 0.001:
+    while compute_error(b, m, data) > 0.001:
         b, m = step_gradient(b, m, np.array(data), learning_rate)
     #print(b, m, 'grad')
     return [b, m]
@@ -78,13 +95,14 @@ def runnow(data):
     learning_rate = 0.0001
     initial_b = 0 # initial y-intercept guess
     initial_m = 0 # initial slope guess
-    print("Starting gradient descent at b = {0}, m = {1}, error = {2}".format(initial_b, initial_m, compute_error_for_line_given_points(initial_b, initial_m, data)))
+    print("Starting gradient descent at b = {0}, m = {1}, error = {2}".format(initial_b, initial_m, compute_error(initial_b, initial_m, data)))
     print("Running...")
     [b, m] = gradient_descent_runner(data, initial_b, initial_m, learning_rate)
-    print("After {0}, m = {1}, error = {2}".format(b, m, compute_error_for_line_given_points(b, m, data)))
+    print("After {0}, m = {1}, error = {2}".format(b, m, compute_error(b, m, data)))
     return b, m
 
 
+# alpha is slope, beta y-intercept
 def prediction(data):
     s_xy = 0
     s_xx = 0

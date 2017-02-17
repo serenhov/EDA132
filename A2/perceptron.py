@@ -58,7 +58,7 @@ def plot_data(data, perceptron):
         else:
             plt.plot(data[1][i], data[2][i], 'bo')
     k = -1 * perceptron[0] / perceptron[1]
-    m = perceptron[0] + perceptron[1]
+    m = 0
     x_0 = 0
     y_0 = m
     x_1 = 1

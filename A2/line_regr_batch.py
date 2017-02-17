@@ -28,19 +28,37 @@ def read_file_and_scale(my_file):
     for val in py_val:
         new_val = val / max_y
         y_val.append(new_val)
-    print(x_val, y_val)
+    print(x_val, y_val, "listorna")
     return x_val, y_val
 
 
 def plot_data(my_data1, my_data2, grad1, grad2):
     plt.plot(my_data1[1], my_data1[0], 'ro')
     plt.plot(my_data2[1], my_data2[0], 'bo')
-    plt.plot(grad1, 'b')
-    plt.plot(grad2, 'r')
+    #plt.plot(grad1, 'b')
+    #plt.plot(grad2, 'r')
+
+    k = grad1[1]
+    m = grad1[0]
+    x_0 = 0
+    y_0 = m
+    x_1 = 1
+    y_1 = k * (x_1 - x_0) + y_0
+    plt.plot([x_0, x_1], [y_0, y_1], 'b')
+
+
+    k = grad2[1]
+    m = grad2[0]
+    x_0 = 0
+    y_0 = m
+    x_1 = 1
+    y_1 = k * (x_1 - x_0) + y_0
+    plt.plot([x_0, x_1], [y_0, y_1], 'r')
     plt.show()
 
 
-def compute_error_for_line_given_points(b, m, data):
+
+def compute_error(b, m, data):
     total_error = 0
     for i in range(0, 15):
         x = data[0][i]
@@ -63,28 +81,30 @@ def step_gradient(b_current, m_current, data, learning_rate):
     return [new_b, new_m]
 
 
-def gradient_descent_runner(data, starting_b, starting_m, learning_rate):
+# m is slope, b y-intercept
+def gradient_runner(data, starting_b, starting_m, learning_rate):
     b = starting_b
     m = starting_m
-    while compute_error_for_line_given_points(b, m, data) > 0.001:
+    while compute_error(b, m, data) > 0.0001:
         b, m = step_gradient(b, m, np.array(data), learning_rate)
     #print(b, m, 'grad')
     return [b, m]
 
 
-def runnow(data):
+def run_now(data):
     learning_rate = 0.0001
     initial_b = 0
     initial_m = 0
-    print("Starting gradient descent at b = {0}, m = {1}, error = {2}".format(initial_b, initial_m, compute_error_for_line_given_points(initial_b, initial_m, data)))
+    print("Starting gradient descent at b = {0}, m = {1}, error = {2}".format(initial_b, initial_m, compute_error(initial_b, initial_m, data)))
     print("Running...")
-    [b, m] = gradient_descent_runner(data, initial_b, initial_m, learning_rate)
-    print("After {0}, m = {1}, error = {2}".format(b, m, compute_error_for_line_given_points(b, m, data)))
+    [b, m] = gradient_runner(data, initial_b, initial_m, learning_rate)
+    print("After {0}, m = {1}, error = {2}".format(b, m, compute_error(b, m, data)))
+    print(b, "B", m, "M")
     return b, m
 
 
 data_english = read_file_and_scale('english')
 data_french = read_file_and_scale('french')
-eng_grad = runnow(data_english)
-fren_grad = runnow(data_french)
+eng_grad = run_now(data_english)
+fren_grad = run_now(data_french)
 plot_data(data_english, data_french, eng_grad, fren_grad)
