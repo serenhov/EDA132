@@ -1,5 +1,4 @@
-from random import randint
-
+import numpy as np
 import math
 import matplotlib.pyplot as plt
 
@@ -21,7 +20,6 @@ def read_svm_file(my_file):
         label.append(int(first))
         words.append(float(second))
         nbr_of_a.append(float(third))
-    print(len(label), len(words), len(nbr_of_a))
     return label, words, nbr_of_a
 
 
@@ -33,20 +31,22 @@ def logistic_regression(svm_data, w1, w2, learning_rate):
     weights.append(w1)
     weights.append(w2)
     while True:
-       # random = randint(0, 29)
-
-        for i in range(30):
-            new_weights.clear()
-            hw = 1 / (1 + math.e ** (- w0 - w1 * svm_data[1][i] - w2 * svm_data[2][i]))
-            w0 += learning_rate * (svm_data[0][i] - hw)
-            w1 += learning_rate * (svm_data[0][i] - hw) * hw * (1-hw) * svm_data[1][i]
-            w2 += learning_rate * (svm_data[0][i] - hw) * hw * (1-hw) * svm_data[2][i]
-            new_weights.append(w0)
-            new_weights.append(w1)
-            new_weights.append(w2)
-            print(stop_criteria(weights, new_weights), 'stop')
+        #random = randint(0, 29)
+        i = np.random.randint(0, 30)
+        new_weights.clear()
+        hw = 1 / (1 + math.exp(-(w0 + (w1 * svm_data[1][i]) + (w2 * svm_data[2][i]))))
+        w0 += learning_rate * (svm_data[0][i] - hw)
+        w1 += learning_rate * (svm_data[0][i] - hw) * svm_data[1][i]
+        w2 += learning_rate * (svm_data[0][i] - hw) * svm_data[2][i]
+        #w0 += learning_rate * (svm_data[0][random] - hw)  * hw * (1 - hw)
+        #w1 += learning_rate * (svm_data[0][random] - hw) * hw * (1 - hw) * svm_data[1][random]
+        #w2 += learning_rate * (svm_data[0][random] - hw) * hw * (1 - hw) * svm_data[2][random]
+        new_weights.append(w0)
+        new_weights.append(w1)
+        new_weights.append(w2)
+        print(stop_criteria(weights, new_weights), 'stop')
         if stop_criteria(weights, new_weights) < 0.001:
-            break
+           break
         weights.clear()
         weights.append(new_weights[0])
         weights.append(new_weights[1])
@@ -57,19 +57,19 @@ def logistic_regression(svm_data, w1, w2, learning_rate):
 def stop_criteria(weights, new_weights):
     sum = 0
     for i in range(3):
-        sum += abs((weights[i] - new_weights[i]) / new_weights[i])
+        sum += math.fabs((weights[i] - new_weights[i]) / new_weights[i])
     result = sum / 3
     return result
 
 
-def plot_data(data, perceptron):
+def plot_data(data, regression):
     for i in range(0, 27):
         if data[0][i] == 0:
             plt.plot(data[1][i], data[2][i], 'ro')
         else:
             plt.plot(data[1][i], data[2][i], 'bo')
-    k = -1 * perceptron[1] / perceptron[2]
-    m = perceptron[0] / perceptron[2]
+    k = - 1 * regression[1] / regression[2]
+    m = regression[0] / regression[2]
     x_0 = 0
     y_0 = m
     x_1 = 1
@@ -79,7 +79,7 @@ def plot_data(data, perceptron):
 
 
 svm_data = read_svm_file('file.txt')
-result = logistic_regression(svm_data, 0, 1, 0.01)
+result = logistic_regression(svm_data, 0, 1, 0.1)
 print(result, "RESULTAT")
 plot_data(svm_data, result)
 
