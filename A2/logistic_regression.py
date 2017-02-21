@@ -27,33 +27,36 @@ def logistic_regression(svm_data, w1, w2, learning_rate):
     w0 = 1
     weights = []
     new_weights = []
+    probs = []
     weights.append(w0)
     weights.append(w1)
     weights.append(w2)
+    arr = np.arange(30)
     while True:
-        #random = randint(0, 29)
-        i = np.random.randint(0, 30)
-        new_weights.clear()
-        hw = 1 / (1 + math.exp(-(w0 + (w1 * svm_data[1][i]) + (w2 * svm_data[2][i]))))
-        w0 += learning_rate * (svm_data[0][i] - hw)
-        w1 += learning_rate * (svm_data[0][i] - hw) * svm_data[1][i]
-        w2 += learning_rate * (svm_data[0][i] - hw) * svm_data[2][i]
-        #w0 += learning_rate * (svm_data[0][random] - hw)  * hw * (1 - hw)
-        #w1 += learning_rate * (svm_data[0][random] - hw) * hw * (1 - hw) * svm_data[1][random]
-        #w2 += learning_rate * (svm_data[0][random] - hw) * hw * (1 - hw) * svm_data[2][random]
-        new_weights.append(w0)
-        new_weights.append(w1)
-        new_weights.append(w2)
-        print(stop_criteria(weights, new_weights), 'stop')
-        if stop_criteria(weights, new_weights) < 0.001:
-           break
-        weights.clear()
-        weights.append(new_weights[0])
-        weights.append(new_weights[1])
-        weights.append(new_weights[2])
-    return w0, w1, w2
+        np.random.shuffle(arr)
+        probs.clear()
+        for i in arr:
+            new_weights.clear()
+            x = - (w0 + (w1 * svm_data[1][i]) + (w2 * svm_data[2][i]))
+            # Calculates the probability for each point having class 1
+            hw = 1 / (1 + math.exp(x))
+            probs.append(hw)
+            w0 += learning_rate * (svm_data[0][i] - hw) * hw * (1 - hw)
+            w1 += learning_rate * (svm_data[0][i] - hw) * hw * (1 - hw) * svm_data[1][i]
+            w2 += learning_rate * (svm_data[0][i] - hw) * hw * (1 - hw) * svm_data[2][i]
+            new_weights.append(w0)
+            new_weights.append(w1)
+            new_weights.append(w2)
+            if stop_criteria(weights, new_weights) < 0.001:
+                print(probs)
+                return w0, w1, w2
+            weights.clear()
+            weights.append(new_weights[0])
+            weights.append(new_weights[1])
+            weights.append(new_weights[2])
 
 
+# Stop criteria for the logistic regression function
 def stop_criteria(weights, new_weights):
     sum = 0
     for i in range(3):
