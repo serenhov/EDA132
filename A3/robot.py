@@ -1,6 +1,7 @@
 import random
 import numpy as np
-
+UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+SENSED_DIRECTIONS = (UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT)
 UP, DOWN, LEFT, RIGHT = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 DIRECTIONS = (UP, DOWN, LEFT, RIGHT)
 WALL, NO_WALL, CORNER = (1, 0, -1)
@@ -83,36 +84,59 @@ def the_move(board, current, cur_dir):
 
 def robot_walk(board, current_pos, cur_dir):
     i = 0
-    while i < 30:
+    while i < 5:
         board, current_pos = the_move(board, current_pos, cur_dir)
+        print('----- ROBOT WALKING ------')
         print_board(board)
         i += 1
+        sensor(current_pos)
 
-def sensed_possible_moves(board, player):
+def sb(new_row, new_column, valid):
+    if on_board(new_row) and on_board(new_column):
+        if (new_row, new_column) not in valid:
+            valid.append((new_row, new_column))
+    return valid
+
+def sensed_possible_moves(current):
     valid_moves = []
-    for j in range(5):
-        for i in range(5):
-            if board[i][j] == player:
-                for d in DIRECTIONS:
-                    new_row = i + d[0]
-                    new_column = j + d[1]
-                    while on_board(new_row) and on_board(new_column):
-                        if board[new_row][new_column] == -player:
-                            new_row += d[0]
-                            new_column += d[1]
-                            if on_board(new_row) and on_board(new_column) and board[new_row][new_column] == 0:
-                                if (new_row, new_column) not in valid_moves:
-                                    valid_moves.append((new_row, new_column))
-                                break
-                        else:
-                            break
-    return valid_moves
+    valid_moves2 = []
+    for d in SENSED_DIRECTIONS:
+        new_row = current[0] + d[0]
+        new_column = current[1] + d[1]
+        valid_moves = sb(new_row, new_column, valid_moves)
+
+    for d in SENSED_DIRECTIONS:
+        new_row = current[0] + UP_LEFT[0] + d[0]
+        new_column = current[1] + UP_LEFT[1] + d[1]
+        if (new_row, new_column) not in valid_moves:
+            valid_moves2 = sb(new_row, new_column, valid_moves2)
+        new_row = current[0] + UP_RIGHT[0] + d[0]
+        new_column = current[1] + UP_RIGHT[1] + d[1]
+        if (new_row, new_column) not in valid_moves:
+            valid_moves2 = sb(new_row, new_column, valid_moves2)
+        new_row = current[0] + DOWN_LEFT[0] + d[0]
+        new_column = current[0] + DOWN_LEFT[1] + d[1]
+        if (new_row, new_column) not in valid_moves:
+            valid_moves2 = sb(new_row, new_column, valid_moves2)
+        new_row = current[0] + DOWN_RIGHT[0] + d[0]
+        new_column = current[1] + DOWN_RIGHT[1] + d[1]
+        if (new_row, new_column) not in valid_moves:
+            valid_moves2 = sb(new_row, new_column, valid_moves2)
+    return valid_moves, valid_moves2
+
+
 
 def sensor(cur_pos):
     sensed_board = [[0 for x in range(5)] for y in range(5)]
-    sensed_board[cur_pos[0]][cur_pos[1]] = 0.100
-
-
+    sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
+    nbh, nbh2 = sensed_possible_moves(cur_pos)
+    for i in nbh:
+        sensed_board[i[0]][i[1]] = '0.050'
+    for i in nbh2:
+        sensed_board[i[0]][i[1]] = '0.025'
+    sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
+    print('------ SENSED BOARED ------')
+    print_board(sensed_board)
 
 
 w, h = 5, 5;
