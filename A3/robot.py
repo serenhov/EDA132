@@ -88,6 +88,32 @@ def robot_walk(board, current_pos, cur_dir):
         print_board(board)
         i += 1
 
+def sensed_possible_moves(board, player):
+    valid_moves = []
+    for j in range(5):
+        for i in range(5):
+            if board[i][j] == player:
+                for d in DIRECTIONS:
+                    new_row = i + d[0]
+                    new_column = j + d[1]
+                    while on_board(new_row) and on_board(new_column):
+                        if board[new_row][new_column] == -player:
+                            new_row += d[0]
+                            new_column += d[1]
+                            if on_board(new_row) and on_board(new_column) and board[new_row][new_column] == 0:
+                                if (new_row, new_column) not in valid_moves:
+                                    valid_moves.append((new_row, new_column))
+                                break
+                        else:
+                            break
+    return valid_moves
+
+def sensor(cur_pos):
+    sensed_board = [[0 for x in range(5)] for y in range(5)]
+    sensed_board[cur_pos[0]][cur_pos[1]] = 0.100
+
+
+
 
 w, h = 5, 5;
 board = [[0 for x in range(w)] for y in range(h)]
