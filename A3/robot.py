@@ -21,20 +21,23 @@ def start_pos(board):
     y = random.randint(0, 4)
     print(x, y)
     board[x][y] = 1
+    h = random.randint(0,3)
+    h_0 = DIRECTIONS[h]
     print_board(board)
-
+    return x, y, h_0
 
 
 def current_pos(board):
     for j in range(5):
         for i in range(5):
             if board[i][j] == 1:
-                current = i, j
-    return current
+                cur = i, j
+    return cur
 
 
 def on_board(i):
     return 0 <= i < 5
+
 
 def find_possible_moves(board, current):
     valid_moves = []
@@ -43,20 +46,51 @@ def find_possible_moves(board, current):
         new_column = current[1] + d[1]
         if on_board(new_row) and on_board(new_column):
             valid_moves.append((new_row, new_column))
-    return len(valid_moves)
+    return valid_moves
 
 
-def robot_walk(board, current_pos):
-    current = current_pos(board)
-    state = find_possible_moves(board, current)
-    if state == 2:
-        state = WALL
-    elif state == 3:
+def the_move(board, current, cur_dir):
+    board[current[0]][current[1]] = 0
+    if on_board(current[0] + cur_dir[0]) and on_board(current[1] + cur_dir[1]):
+        r = random.randint(1, 100)
+        if r < 31:
+            moves = find_possible_moves(board, current)
+            print(cur_dir, 'cur_dir')
+            h = random.randint(0, len(moves)-1)
+            move_to = moves[h]
+            a = move_to[0]
+            b = move_to[1]
+            print(a,'a', b, 'b')
+            board[a][b] = 1
+        else:
+            print(cur_dir, 'cur_dir')
+            a = current[0] + cur_dir[0]
+            b = current[1] + cur_dir[1]
+            print(a,'a', b, 'b')
+            board[a][b] = 1
+    else:
+        print(cur_dir, 'cur_dir')
+        moves = find_possible_moves(board, current)
+        h = random.randint(0, len(moves)-1)
+        move_to = moves[h]
+        a = move_to[0]
+        b = move_to[1]
+        print(a, 'a', b, 'b')
+        board[a][b] = 1
+    current = a, b
+    return board, current
 
+
+def robot_walk(board, current_pos, cur_dir):
+    i = 0
+    while i < 30:
+        board, current_pos = the_move(board, current_pos, cur_dir)
+        print_board(board)
+        i += 1
 
 
 w, h = 5, 5;
 board = [[0 for x in range(w)] for y in range(h)]
-print_board(board)
-
-current_pos = start_pos(board)
+start = start_pos(board)
+cur_dir = start[2]
+robot_walk(board, start, cur_dir)
