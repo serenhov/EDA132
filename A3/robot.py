@@ -145,7 +145,7 @@ def f_matrix():
     f_board = [[1/25 for x in range(5)] for y in range(5)]
     return f_board
 
-def add_T_vec(sensed_board):
+def T_matrix(sensed_board):
     max_prob = 0
     index = 0
     for i in range(5):
@@ -154,19 +154,12 @@ def add_T_vec(sensed_board):
             if p > max_prob:
                 max_prob = p
                 index = i, j
-    return index
-
-def forward_hmm(sensed_board):
-    matrix = f_matrix()
-    for i in range(5):
-        for j in range(5):
-            matrix[j][i] = sensed_board[j][i] + 0.1 * matrix[j][i]
-    a, b = add_T_vec(sensed_board)
-    matrix[a][b] *= 0.7
-
+    t_board = [[0.1 for x in range(5)] for y in range(5)]
+    t_board[index[0]][index[1]] = 0.7
     for d in DIRECTIONS:
-        if not d = cur_dir:
-            matrix[d[0]][d[1]] *= 0.3
+        if not d == cur_dir:
+            t_board[d[0]][d[1]] = 0.3
+    return t_board
 
 def get_alpha(sensed_board):
     temp = []
@@ -174,18 +167,35 @@ def get_alpha(sensed_board):
     alpha = 0;
     max = 0;
     mostLikelyState = -1;
-    for row in nbrStates:
+    for row in range(nbrStates):
         temp[row] = 0
-        for i in nbrStates:
+        for i in range(nbrStates):
             temp[row] += sensed_board[i][row] * sp[i] * o[row]
     alpha += temp[row]
     alpha = 1 / alpha;
     return alpha
 
 
+def forward_hmm(sensed_board):
+    f = f_matrix()
+    T = T_matrix(sensed_board)
+    alpha = get_alpha(sensed_board)
+    for i in range(5):
+        for j in range(5):
+            f[j][i] = alpha * sensed_board[j][i] + T[j][i] * f[j][i]
+   # a, b = add_T_vec(sensed_board)
+   # matrix[a][b] *= 0.7
+
+
+
+
+
 
     print('------ FORWARD HMM BOARD ------')
     print_board(forward_board)
+
+def get_T_vec(cur_dir):
+
 
 
 w, h = 5, 5;
