@@ -20,8 +20,7 @@ def print_board(board):
 def start_pos(board):
     x = random.randint(0, 4)
     y = random.randint(0, 4)
-    print(x, y)
-    board[x][y] = 1
+    board[x][y] = 'R'
     h = random.randint(0,3)
     h_0 = DIRECTIONS[h]
     print_board(board)
@@ -31,9 +30,8 @@ def start_pos(board):
 def current_pos(board):
     for j in range(5):
         for i in range(5):
-            if board[i][j] == 1:
-                cur = i, j
-    return cur
+            if board[i][j] == 'R' or 1:
+                return i, j
 
 
 def on_board(i):
@@ -56,41 +54,36 @@ def the_move(board, current, cur_dir):
         r = random.randint(1, 100)
         if r < 31:
             moves = find_possible_moves(board, current)
-            print(cur_dir, 'cur_dir')
             h = random.randint(0, len(moves)-1)
             move_to = moves[h]
             a = move_to[0]
             b = move_to[1]
-            print(a,'a', b, 'b')
-            board[a][b] = 1
+            board[a][b] = 'R'
         else:
-            print(cur_dir, 'cur_dir')
             a = current[0] + cur_dir[0]
             b = current[1] + cur_dir[1]
-            print(a,'a', b, 'b')
-            board[a][b] = 1
+            board[a][b] = 'R'
     else:
-        print(cur_dir, 'cur_dir')
         moves = find_possible_moves(board, current)
         h = random.randint(0, len(moves)-1)
         move_to = moves[h]
         a = move_to[0]
         b = move_to[1]
-        print(a, 'a', b, 'b')
-        board[a][b] = 1
+        board[a][b] = 'R'
     current = a, b
     return board, current
 
 
 def robot_walk(board, current_pos, cur_dir):
     i = 0
-    while i < 5:
+    while i < 30:
         board, current_pos = the_move(board, current_pos, cur_dir)
-        print('----- ROBOT WALKING ------')
-        print_board(board)
+     #   print('----- ROBOT WALKING ------')
+    #  print_board(board)
         i += 1
-        sensed_board = sensor(current_pos)
-    return sensed_board
+        sensor(current_pos, board)
+        forward_hmm(board)
+
 
 def sb(new_row, new_column, valid):
     if on_board(new_row) and on_board(new_column):
@@ -127,8 +120,46 @@ def sensed_possible_moves(current):
     return valid_moves, valid_moves2
 
 
+def sensor(cur_pos, board):
+    print('------ ROBOT: R, SENSOR: AI ------')
+    a = 0
+    b = 0
+    nbh, nbh2 = sensed_possible_moves(cur_pos)
+    nbh_l = len(nbh)
+    nbh2_l = len(nbh2)
+    #p_nothing = 1.0 - 0.1 - nbh_l * 0.05 - nbh2_l * 0.025
+    rand = random.randint(1, 1000)
+    if rand < 101:
+        board[cur_pos[0]][cur_pos[1]] = 1
+        print('GOOD JOB')
+    elif 101 < rand < 100 + (50 * nbh_l):
+        AIpos = random.choice(nbh)
+        print(AIpos, "pos")
+        board[AIpos[0]][AIpos[1]] = 'AI'
+        print('0.05')
+        a = AIpos[0]
+        b = AIpos[1]
+    elif 100 + (50 * nbh_l) < rand < 150 + (25 * nbh2_l):
+        AIpos = random.choice(nbh2)
+        board[AIpos[0]][AIpos[1]] = 'AI'
+        print(AIpos, "pos")
+        print('0.025')
+        a = AIpos[0]
+        b = AIpos[1]
+    else:
+        print("nothing")
+    print('------  ------')
+    print_board(board)
+    board[a][b] = 0
+    return board
 
-def sensor(cur_pos):
+
+def f_matrix():
+    f_board = [[1/25 for x in range(5)] for y in range(5)]
+    return f_board
+
+
+def o_matrix(cur_pos):
     sensed_board = [[0 for x in range(5)] for y in range(5)]
     sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
     nbh, nbh2 = sensed_possible_moves(cur_pos)
@@ -137,22 +168,15 @@ def sensor(cur_pos):
     for i in nbh2:
         sensed_board[i[0]][i[1]] = '0.025'
     sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
-    print('------ SENSED BOARD ------')
-    print_board(sensed_board)
     return sensed_board
 
 
-
-def f_matrix():
-    f_board = [[1/25 for x in range(5)] for y in range(5)]
-    return f_board
-
-def T_matrix(sensed_board):
+def t_matrix(f_board):
     max_prob = 0
     index = 0
     for i in range(5):
         for j in range(5):
-            p = sensed_board[i][j]
+            p = f_board[i][j]
             if p > max_prob:
                 max_prob = p
                 index = i, j
@@ -164,6 +188,7 @@ def T_matrix(sensed_board):
             t_board[index[0]+d[0]][index[1]+d[1]] = 0.7
     return t_board
 
+'''
 def get_alpha(sensed_board):
     temp = []
     nbrStates = 16
@@ -177,16 +202,21 @@ def get_alpha(sensed_board):
     alpha += temp[row]
     alpha = 1 / alpha;
     return alpha
+'''
 
-
-def forward_hmm(sensed_board):
+def forward_hmm(board):
+    current = [[]]
+    temp = [[0 for x in range(w)] for y in range(h)]
+    current = current_pos(board)
     f = f_matrix()
-    T = T_matrix(sensed_board)
-    alpha = get_alpha(sensed_board)
+    t = t_matrix(f)
+    o = o_matrix(current)
+ #   alpha = get_alpha(board)
     print('lallla')
     for i in range(5):
         for j in range(5):
-            f[i][j] = sensed_board[i][j] * T[i][j] * f[i][j]
+            temp[i][j] = t[i][j] * f[j][i]
+            f[i][j] = float(o[i][j]) * temp[j][i]
    # a, b = add_T_vec(sensed_board)
    # matrix[a][b] *= 0.7
     print('------ FORWARD HMM BOARD ------')
@@ -194,10 +224,9 @@ def forward_hmm(sensed_board):
 
 
 
-
 w, h = 5, 5;
 board = [[0 for x in range(w)] for y in range(h)]
+cur = current_pos(board)
 start = start_pos(board)
 cur_dir = start[2]
-sensed_board = robot_walk(board, start, cur_dir)
-forward_hmm(sensed_board)
+robot_walk(board, start, cur_dir)
