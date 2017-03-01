@@ -91,11 +91,13 @@ def robot_walk(board, current_pos, cur_dir):
         i += 1
         sensor(current_pos)
 
+
 def sb(new_row, new_column, valid):
     if on_board(new_row) and on_board(new_column):
         if (new_row, new_column) not in valid:
             valid.append((new_row, new_column))
     return valid
+
 
 def sensed_possible_moves(current):
     valid_moves = []
@@ -135,8 +137,55 @@ def sensor(cur_pos):
     for i in nbh2:
         sensed_board[i[0]][i[1]] = '0.025'
     sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
-    print('------ SENSED BOARED ------')
+    print('------ SENSED BOARD ------')
     print_board(sensed_board)
+
+
+def f_matrix():
+    f_board = [[1/25 for x in range(5)] for y in range(5)]
+    return f_board
+
+def add_T_vec(sensed_board):
+    max_prob = 0
+    index = 0
+    for i in range(5):
+        for j in range(5):
+            p = sensed_board[i][j]
+            if p > max_prob:
+                max_prob = p
+                index = i, j
+    return index
+
+def forward_hmm(sensed_board):
+    matrix = f_matrix()
+    for i in range(5):
+        for j in range(5):
+            matrix[j][i] = sensed_board[j][i] + 0.1 * matrix[j][i]
+    a, b = add_T_vec(sensed_board)
+    matrix[a][b] *= 0.7
+
+    for d in DIRECTIONS:
+        if not d = cur_dir:
+            matrix[d[0]][d[1]] *= 0.3
+
+def get_alpha(sensed_board):
+    temp = []
+    nbrStates = 16
+    alpha = 0;
+    max = 0;
+    mostLikelyState = -1;
+    for row in nbrStates:
+        temp[row] = 0
+        for i in nbrStates:
+            temp[row] += sensed_board[i][row] * sp[i] * o[row]
+    alpha += temp[row]
+    alpha = 1 / alpha;
+    return alpha
+
+
+
+    print('------ FORWARD HMM BOARD ------')
+    print_board(forward_board)
 
 
 w, h = 5, 5;
