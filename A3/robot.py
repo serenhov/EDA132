@@ -89,8 +89,8 @@ def robot_walk(board, current_pos, cur_dir):
         print('----- ROBOT WALKING ------')
         print_board(board)
         i += 1
-        sensor(current_pos)
-
+        sensed_board = sensor(current_pos)
+    return sensed_board
 
 def sb(new_row, new_column, valid):
     if on_board(new_row) and on_board(new_column):
@@ -139,6 +139,8 @@ def sensor(cur_pos):
     sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
     print('------ SENSED BOARD ------')
     print_board(sensed_board)
+    return sensed_board
+
 
 
 def f_matrix():
@@ -181,21 +183,15 @@ def forward_hmm(sensed_board):
     f = f_matrix()
     T = T_matrix(sensed_board)
     alpha = get_alpha(sensed_board)
+    print('lallla')
     for i in range(5):
         for j in range(5):
-            f[j][i] = alpha * sensed_board[j][i] + T[j][i] * f[j][i]
+            f[i][j] = sensed_board[i][j] * T[i][j] * f[i][j]
    # a, b = add_T_vec(sensed_board)
    # matrix[a][b] *= 0.7
-
-
-
-
-
-
     print('------ FORWARD HMM BOARD ------')
-    print_board(forward_board)
+    print_board(f)
 
-def get_T_vec(cur_dir):
 
 
 
@@ -203,4 +199,5 @@ w, h = 5, 5;
 board = [[0 for x in range(w)] for y in range(h)]
 start = start_pos(board)
 cur_dir = start[2]
-robot_walk(board, start, cur_dir)
+sensed_board = robot_walk(board, start, cur_dir)
+forward_hmm(sensed_board)
