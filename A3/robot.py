@@ -155,10 +155,11 @@ def T_matrix(sensed_board):
                 max_prob = p
                 index = i, j
     t_board = [[0.1 for x in range(5)] for y in range(5)]
-    t_board[index[0]][index[1]] = 0.7
     for d in DIRECTIONS:
         if not d == cur_dir:
-            t_board[d[0]][d[1]] = 0.3
+            t_board[index[0]+d[0]][index[1]+d[1]] = 0.3
+        else:
+            t_board[index[0]+d[0]][index[1]+d[1]] = 0.7
     return t_board
 
 def get_alpha(sensed_board):
