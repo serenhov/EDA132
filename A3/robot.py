@@ -9,7 +9,6 @@ STATE = (WALL, NO_WALL, CORNER)
 
 
 def print_board(board):
-
     print("   1  2  3  4  5")
     i = 1
     for row in board:
@@ -30,7 +29,9 @@ def start_pos(board):
 def current_pos(board):
     for j in range(5):
         for i in range(5):
-            if board[i][j] == 'R' or 1:
+            if board[i][j] == 'R':
+                return i, j
+            if board[i][j] == 1:
                 return i, j
 
 
@@ -74,15 +75,15 @@ def the_move(board, current, cur_dir):
     return board, current
 
 
-def robot_walk(board, current_pos, cur_dir):
+def robot_walk(board, cur_pos, cur_dir):
     i = 0
     while i < 30:
-        board, current_pos = the_move(board, current_pos, cur_dir)
+        board, cur_pos = the_move(board, cur_pos, cur_dir)
      #   print('----- ROBOT WALKING ------')
     #  print_board(board)
         i += 1
-        sensor(current_pos, board)
-        forward_hmm(board)
+        this_board = sensor(cur_pos, board)
+        forward_hmm(this_board)
 
 
 def sb(new_row, new_column, valid):
@@ -161,13 +162,13 @@ def f_matrix():
 
 def o_matrix(cur_pos):
     sensed_board = [[0 for x in range(5)] for y in range(5)]
-    sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
+    sensed_board[cur_pos[0]][cur_pos[1]] = 0.100
     nbh, nbh2 = sensed_possible_moves(cur_pos)
     for i in nbh:
-        sensed_board[i[0]][i[1]] = '0.050'
+        sensed_board[i[0]][i[1]] = 0.050
     for i in nbh2:
-        sensed_board[i[0]][i[1]] = '0.025'
-    sensed_board[cur_pos[0]][cur_pos[1]] = '0.100'
+        sensed_board[i[0]][i[1]] = 0.025
+    sensed_board[cur_pos[0]][cur_pos[1]] = 0.100
     return sensed_board
 
 
@@ -211,7 +212,12 @@ def forward_hmm(board):
     f = f_matrix()
     t = t_matrix(f)
     o = o_matrix(current)
- #   alpha = get_alpha(board)
+    f = np.dot(f, t)
+    f = np.dot(f, o)
+    f /= np.sum(f)
+    print('------ FORWARD HMM BOARD ------')
+    print_board(f)
+''' #   alpha = get_alpha(board)
     print('lallla')
     for i in range(5):
         for j in range(5):
@@ -219,14 +225,11 @@ def forward_hmm(board):
             f[i][j] = float(o[i][j]) * temp[j][i]
    # a, b = add_T_vec(sensed_board)
    # matrix[a][b] *= 0.7
-    print('------ FORWARD HMM BOARD ------')
-    print_board(f)
-
+   '''
 
 
 w, h = 5, 5;
 board = [[0 for x in range(w)] for y in range(h)]
-cur = current_pos(board)
 start = start_pos(board)
 cur_dir = start[2]
 robot_walk(board, start, cur_dir)
