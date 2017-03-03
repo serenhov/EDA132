@@ -15,7 +15,7 @@ def print_board(board):
         print(i, row)
         i += 1
 
-
+# Random start position for the robot
 def start_pos(board):
     x = random.randint(0, 4)
     y = random.randint(0, 4)
@@ -26,6 +26,7 @@ def start_pos(board):
     return x, y, h_0
 
 
+# Returns current position for the robot
 def current_pos(board):
     for j in range(5):
         for i in range(5):
@@ -35,10 +36,16 @@ def current_pos(board):
                 return i, j
 
 
+# Checks if the position is within the board
 def on_board(i):
     return 0 <= i < 5
 
 
+def on_f_board(i):
+    return 0 <= i < 100
+
+
+# Possible moves for the robot
 def find_possible_moves(board, current):
     valid_moves = []
     for d in DIRECTIONS:
@@ -49,6 +56,7 @@ def find_possible_moves(board, current):
     return valid_moves
 
 
+# Returns the new position of the robot
 def the_move(board, current, cur_dir):
     board[current[0]][current[1]] = 0
     if on_board(current[0] + cur_dir[0]) and on_board(current[1] + cur_dir[1]):
@@ -75,157 +83,158 @@ def the_move(board, current, cur_dir):
     return board, current
 
 
+# Robot walks x times
 def robot_walk(board, cur_pos, cur_dir):
     i = 0
-    while i < 30:
+    while i < 1000:
         board, cur_pos = the_move(board, cur_pos, cur_dir)
-     #   print('----- ROBOT WALKING ------')
-    #  print_board(board)
         i += 1
         this_board = sensor(cur_pos, board)
         forward_hmm(this_board)
 
 
-def sb(new_row, new_column, valid):
+# Help function for possible states for the sensor
+def sensor_on_board(new_row, new_column, valid):
     if on_board(new_row) and on_board(new_column):
         if (new_row, new_column) not in valid:
             valid.append((new_row, new_column))
     return valid
 
 
-def sensed_possible_moves(current):
+# Possible states for the sensor
+def sensed_possible_states(current):
     valid_moves = []
     valid_moves2 = []
     for d in SENSED_DIRECTIONS:
         new_row = current[0] + d[0]
         new_column = current[1] + d[1]
-        valid_moves = sb(new_row, new_column, valid_moves)
-
+        valid_moves = sensor_on_board(new_row, new_column, valid_moves)
     for d in SENSED_DIRECTIONS:
         new_row = current[0] + UP_LEFT[0] + d[0]
         new_column = current[1] + UP_LEFT[1] + d[1]
         if (new_row, new_column) not in valid_moves:
-            valid_moves2 = sb(new_row, new_column, valid_moves2)
+            valid_moves2 = sensor_on_board(new_row, new_column, valid_moves2)
         new_row = current[0] + UP_RIGHT[0] + d[0]
         new_column = current[1] + UP_RIGHT[1] + d[1]
         if (new_row, new_column) not in valid_moves:
-            valid_moves2 = sb(new_row, new_column, valid_moves2)
+            valid_moves2 = sensor_on_board(new_row, new_column, valid_moves2)
         new_row = current[0] + DOWN_LEFT[0] + d[0]
         new_column = current[0] + DOWN_LEFT[1] + d[1]
         if (new_row, new_column) not in valid_moves:
-            valid_moves2 = sb(new_row, new_column, valid_moves2)
+            valid_moves2 = sensor_on_board(new_row, new_column, valid_moves2)
         new_row = current[0] + DOWN_RIGHT[0] + d[0]
         new_column = current[1] + DOWN_RIGHT[1] + d[1]
         if (new_row, new_column) not in valid_moves:
-            valid_moves2 = sb(new_row, new_column, valid_moves2)
+            valid_moves2 = sensor_on_board(new_row, new_column, valid_moves2)
     return valid_moves, valid_moves2
 
 
+# Sensor, returns position of the sensor
 def sensor(cur_pos, board):
     print('------ ROBOT: R, SENSOR: AI ------')
     a = 0
     b = 0
-    nbh, nbh2 = sensed_possible_moves(cur_pos)
+    nbh, nbh2 = sensed_possible_states(cur_pos)
     nbh_l = len(nbh)
     nbh2_l = len(nbh2)
-    #p_nothing = 1.0 - 0.1 - nbh_l * 0.05 - nbh2_l * 0.025
     rand = random.randint(1, 1000)
     if rand < 101:
         board[cur_pos[0]][cur_pos[1]] = 1
-        print('GOOD JOB')
     elif 101 < rand < 100 + (50 * nbh_l):
         AIpos = random.choice(nbh)
-        print(AIpos, "pos")
         board[AIpos[0]][AIpos[1]] = 'AI'
-        print('0.05')
         a = AIpos[0]
         b = AIpos[1]
     elif 100 + (50 * nbh_l) < rand < 150 + (25 * nbh2_l):
         AIpos = random.choice(nbh2)
         board[AIpos[0]][AIpos[1]] = 'AI'
-        print(AIpos, "pos")
-        print('0.025')
         a = AIpos[0]
         b = AIpos[1]
-    else:
-        print("nothing")
-    print('------  ------')
     print_board(board)
     board[a][b] = 0
     return board
 
 
-def f_matrix():
-    f_board = [[1/25 for x in range(5)] for y in range(5)]
+# Transition matrix
+def t_matrix():
+    valid = []
+    p = 0
+    t_board = [[0 for x in range(100)] for y in range(100)]
+    for i in range(25):
+        for j in range(25):
+            for z in range(4):
+                n = 0
+                for d in DIRECTIONS:
+                    if on_f_board(i + d[0]*4) and on_f_board(j + d[1]*4):
+                        if i + d[0]*4 == n and DIRECTIONS.index(d) == n:
+                            t_board[i + d[0] * 4][j + d[1] * 4] = 0.7
+                            p = 0.7
+                        else:
+                            valid.append((i + d[0] * 4, j + d[1] * 4))
+                        for v in valid:
+                            t_board[v[0]][v[1]] = (1 - p) / len(valid)
+                    n += 1
+    return t_board
+
+# probability vector
+def f_vector():
+    f_board = [[float(1/100) for x in range(1)] for y in range(100)]
     return f_board
 
 
 def o_matrix(cur_pos):
     sensed_board = [[0 for x in range(5)] for y in range(5)]
-    sensed_board[cur_pos[0]][cur_pos[1]] = 0.100
-    nbh, nbh2 = sensed_possible_moves(cur_pos)
+    a = cur_pos[0]
+    b = cur_pos[1]
+    sensed_board[a][b] = 0.100
+    nbh, nbh2 = sensed_possible_states(cur_pos)
     for i in nbh:
         sensed_board[i[0]][i[1]] = 0.050
     for i in nbh2:
         sensed_board[i[0]][i[1]] = 0.025
     sensed_board[cur_pos[0]][cur_pos[1]] = 0.100
-    return sensed_board
+    matrix = [[0 for x in range(100)] for y in range(100)] # creating diognal matrix from our 5x5 matrix
+    isb = 0
+    isb2 = 0
+    end = 0
+    for i in range(100):
+        for j in range(100):
+            if i == j:
+                matrix[i][j] = sensed_board[isb2][isb]
+                end += 1
+                if end == 4:
+                    end = 0
+                    isb += 1
+                    if isb == 5:
+                        isb = 0
+                        isb2 += 1
+    return matrix
 
-
-def t_matrix(f_board):
-    max_prob = 0
-    index = 0
-    for i in range(5):
-        for j in range(5):
-            p = f_board[i][j]
-            if p > max_prob:
-                max_prob = p
-                index = i, j
-    t_board = [[0.1 for x in range(5)] for y in range(5)]
-    for d in DIRECTIONS:
-        if not d == cur_dir:
-            t_board[index[0]+d[0]][index[1]+d[1]] = 0.3
-        else:
-            t_board[index[0]+d[0]][index[1]+d[1]] = 0.7
-    return t_board
-
-'''
-def get_alpha(sensed_board):
-    temp = []
-    nbrStates = 16
-    alpha = 0;
-    max = 0;
-    mostLikelyState = -1;
-    for row in range(nbrStates):
-        temp[row] = 0
-        for i in range(nbrStates):
-            temp[row] += sensed_board[i][row] * sp[i] * o[row]
-    alpha += temp[row]
-    alpha = 1 / alpha;
-    return alpha
-'''
 
 def forward_hmm(board):
-    current = [[]]
-    temp = [[0 for x in range(w)] for y in range(h)]
     current = current_pos(board)
-    f = f_matrix()
-    t = t_matrix(f)
+    f = f_vector()
+    t = t_matrix()
     o = o_matrix(current)
-    f = np.dot(f, t)
-    f = np.dot(f, o)
-    f /= np.sum(f)
+    y = np.dot(o, t)
+    f = np.dot(y, f)
+    if sum(f) != 0:
+        f /= np.sum(f)  #alpha
+    f_print = [[0.0 for x in range(5)] for y in range(5)]
+    a, b, n, prob = 0, 0, 0, 0
+    for i in f:
+        prob += float(i)
+        n += 1
+        if n == 4:
+            f_print[a][b] = float(prob)
+            a += 1
+            prob = 0
+            n = 0
+            if a == 5:
+                a = 0
+                b +=1
     print('------ FORWARD HMM BOARD ------')
-    print_board(f)
-''' #   alpha = get_alpha(board)
-    print('lallla')
-    for i in range(5):
-        for j in range(5):
-            temp[i][j] = t[i][j] * f[j][i]
-            f[i][j] = float(o[i][j]) * temp[j][i]
-   # a, b = add_T_vec(sensed_board)
-   # matrix[a][b] *= 0.7
-   '''
+    print_board(f_print)
 
 
 w, h = 5, 5;
